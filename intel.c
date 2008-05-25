@@ -46,7 +46,7 @@ void saveBMP(char* fname, BMPHeader* header, unsigned char* data) {
 	return;
 }
 
-extern void filter (unsigned char* inputBMP, int width, int height, unsigned char* outputBMP, int w, int h);
+extern int filter (unsigned char* inputBMP, int width, int height, unsigned char* outputBMP, int w, int h);
 
 int main(void) {
 	clock_t ticks;
@@ -92,23 +92,29 @@ int main(void) {
 	//
 
 	x = 0;
+	int ret;
 
 	for (i = 1; i < 10; i += 2) {
 		for (z = 0; z < ((-(i-10))^2)+1; ++z) {
-			filter(input1, head[0].width, head[0].height, output1[x], i, i);
-			filter(input2, head[1].width, head[1].height, output2[x], i, i);
-			filter(input3, head[2].width, head[2].height, output3[x], i, i);
-			filter(input4, head[3].width, head[3].height, output4[x], i, i);
+			ret = filter(input1, head[0].width, head[0].height, output1[x], i, i);
+			printf("AJUNK = %d \n", ret);
+			ret = filter(input2, head[1].width, head[1].height, output2[x], i, i);
+			printf("AJUNK = %d \n", ret);
+			ret = filter(input3, head[2].width, head[2].height, output3[x], i, i);
+			printf("AJUNK = %d \n", ret);
+
+			ret = filter(input4, head[3].width, head[3].height, output4[x], i, i);
+			printf("AJUNK = %d \n", ret);
 			filter(input5, head[4].width, head[4].height, output5[x], i, i);
 		}
 		++x;
 	}
 
-	filter(input1, head[0].width, head[0].height, output1[5], 35, 35);
-	filter(input2, head[1].width, head[1].height, output2[5], 35, 35);
-	filter(input3, head[2].width, head[2].height, output3[5], 35, 35);
-	filter(input4, head[3].width, head[3].height, output4[5], 35, 35);
-	filter(input5, head[4].width, head[4].height, output5[5], 35, 35);
+//	filter(input1, head[0].width, head[0].height, output1[5], 35, 35);
+//	filter(input2, head[1].width, head[1].height, output2[5], 35, 35);
+//	filter(input3, head[2].width, head[2].height, output3[5], 35, 35);
+//	filter(input4, head[3].width, head[3].height, output4[5], 35, 35);
+//	filter(input5, head[4].width, head[4].height, output5[5], 35, 35);
 
 
 	ticks = clock() - ticks;

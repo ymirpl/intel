@@ -27,8 +27,7 @@ extern	free
 section .text
 
 ;
-;		unsigned char* dealign (unsigned char* image, int width, int height);
-;		
+; void process (unsigned char* dealigned_src, int width, int height, unsigned char* dst, int w, int h, unsigned char* brightness_map);;		
 ;		Copies the image to the new memory block, omitting BMP "align to 4 bytes in row" bytes.
 ;		Additionally in the new array every pixel is aligned to 4 bytes, as in: [B G R 00].
 ;		TODO : make diff	
@@ -41,6 +40,7 @@ filter:
 	; liczymy ile jest smiecia na koniec kazdego wiersza
 	push	ebp		; Prolog.
         mov	ebp, esp
+	sub	esp, 52		; miejsce na locale
 	push	edi
 	push	esi
 	push	ebx
@@ -56,6 +56,9 @@ filter:
 ok_aligned:
 	mov	ALIGNJUNK, eax	;
 
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	; bedziemy liczyc mianownik
 	mov	eax, [ebp+12]	; eax = width
 	inc	eax		; eax = width + 1
@@ -96,7 +99,38 @@ ok_aligned:
 	mov	IMGSIZE, eax
 
 
+	; init src and dst
+	mov	esi, [ebp+8]	; wejsciowy obrazek 
+	mov	edi, [ebp+20]	; wyjsciowy obrazek
+
 	; bedziemy filtrowac
+
+	;mov	ecx, IMGSIZE
+	;mov	eax, 3
+	;mul 	ecx
+	;mov	ecx, eax	
+	;rep	movsb
+
+	; nowa petla
+	mov	ebx, [ebp+16] ; H
+Yloop:
+	mov	ecx, [ebp+12]
+
+	mov	eax, 3
+	mul 	ecx
+	mov	ecx, eax	
+
+    	rep	movsb	
+
+	mov	ecx, ALIGNJUNK
+	;mov	ecx, 2
+	rep	movsb
+	
+	sub	ebx, 1
+
+	jnz	Yloop
+
+
 
 
 	pop	ebx		; Epilog
