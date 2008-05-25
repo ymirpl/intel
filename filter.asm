@@ -18,11 +18,18 @@
 %define SUMBFFG			[ebp-44]
 %define SUMBFFB			[ebp-48]
 
+%define WIDTH			[ebp+12]
+%define HEIGHT			[ebp+16]
+%define W			[ebp+20]
+%define H			[ebp+24]
 
 
-global  filter
-extern	malloc
-extern	free
+
+; global _filter
+; extern _malloc
+; extern _free
+global filter
+extern malloc
 
 section .text
 
@@ -36,6 +43,7 @@ section .text
 ;		ebp+4 ra
 ;		ebp+8 img etc.
 
+;_filter:
 filter:
 	; liczymy ile jest smiecia na koniec kazdego wiersza
 	push	ebp		; Prolog.
@@ -84,10 +92,13 @@ ok_aligned:
 	shl	eax, 2
 	push	eax
 
-	call	malloc		; Malloc wpisuje adres do eax
-	mov	SUMBFFR, eax
+	;call	_malloc		; Malloc wpisuje adres do eax
 	call	malloc
+	mov	SUMBFFR, eax
+;	call	_malloc
+	call 	malloc
 	mov	SUMBFFG, eax
+;	call	_malloc
 	call	malloc
 	mov	SUMBFFB, eax
 	add	esp, 4		; usun eax ze stosu
@@ -105,32 +116,24 @@ ok_aligned:
 
 	; bedziemy filtrowac
 
-	;mov	ecx, IMGSIZE
-	;mov	eax, 3
-	;mul 	ecx
-	;mov	ecx, eax	
-	;rep	movsb
 
-	; nowa petla
-	mov	ebx, [ebp+16] ; H
-Yloop:
-	mov	ecx, [ebp+12]
 
-	mov	eax, 3
-	mul 	ecx
-	mov	ecx, eax	
+	; najpierw wypelniamy cale buforki
 
-    	rep	movsb	
+	; przygotowanie ecx
 
-	mov	ecx, ALIGNJUNK
-	;mov	ecx, 2
-	rep	movsb
+	mov	ebx, ALIGNJUNK
+	mov	edx, WIDTH
+	lea	eax, [ebx + 02*edx]
+	add	eax, edx
+	mov	edx, H
+	mul	edx
+	mov	ecx, eax 	; ecx = (3*width + junk)*h	
+	neg	ecx		; -ecx
+loopX:
 	
-	sub	ebx, 1
-
-	jnz	Yloop
-
-
+	loopY:
+		movzx	eax, byte [esi+ecx]
 
 
 	pop	ebx		; Epilog
