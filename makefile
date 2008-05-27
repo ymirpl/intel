@@ -5,7 +5,7 @@ CSRC=intel.c
 AS=nasm
 CC=gcc
 LD=gcc
-ASFLAGS=-felf -g -l proj1.lst
+ASFLAGS=-felf -g -l filter.lst
 CFLAGS+=-Wall -m32 -g
 LDFLAGS=-m32 -g
 

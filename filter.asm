@@ -11,6 +11,18 @@
 %define NEWSOURCE		[ebp-28]
 %define HYPHEN			[ebp-52]
 
+%define LROWB			[ebp-56] ; lewy brzeg wiersza
+%define RROWB			[ebp-60] ; prawy brzeg wiersza
+%define ULIMIT			[ebp-64] ; gorny brzeg obrazka
+%define DLIMIT			[ebp-68] ; dolny brzeg obrazka
+
+
+%define LV			[ebp-72] ; lewy wartosc
+%define RV			[ebp-76] ; prawy 
+%define UV			[ebp-80] ; gorny 
+%define DV			[ebp-84] ; dolny 
+
+
 %define WINDOWWIDTH		[ebp-32]
 %define WINDOWHEIGHT		[ebp-36]
 
@@ -48,7 +60,7 @@ filter:
 	; liczymy ile jest smiecia na koniec kazdego wiersza
 	push	ebp		; Prolog.
         mov	ebp, esp
-	sub	esp, 52		; miejsce na locale
+	sub	esp, 90		; miejsce na locale
 	push	edi
 	push	esi
 	push	ebx
@@ -92,13 +104,11 @@ ok_aligned:
 	shl	eax, 2
 	push	eax
 
-	;call	_malloc		; Malloc wpisuje adres do eax
+			; Malloc wpisuje adres do eax
 	call	malloc
 	mov	SUMBFFR, eax
-;	call	_malloc
 	call 	malloc
 	mov	SUMBFFG, eax
-;	call	_malloc
 	call	malloc
 	mov	SUMBFFB, eax
 	add	esp, 4		; usun eax ze stosu
@@ -120,7 +130,7 @@ ok_aligned:
 
 	; najpierw wypelniamy cale buforki
 
-	; przygotowanie ecx
+	; init ecx
 
 	mov	ebx, ALIGNJUNK
 	mov	edx, WIDTH
@@ -130,9 +140,28 @@ ok_aligned:
 	mul	edx
 	mov	ecx, eax 	; ecx = (3*width + junk)*h	
 	neg	ecx		; -ecx
+				; dotad sie dobrze liczy
+
+	; init LROWB i RROWB ULIMIT i DLIMIT
+	mov	LROWB, esi
+	mov	eax, esi
+	add	eax, WIDTH
+	mov	RROWB, eax	
+	mov	eax, esi
+	mov	ULIMIT, eax
+	add	eax, IMGSIZE
+	mov	DLIMIT, eax
+	
+
 loopX:
+	;movs	LV, LROWB 	; init wartosci brzegowych
+	;movs	RV, RROWB		 
 	
 	loopY:
+		lea eax, [esi + ecx]	
+		cmp eax, ULIMIT 
+	
+	;push	dword [esi]	; tu jest to co wstawimy, jak wyjdziemy za zakres z lewej albo z gory
 		movzx	eax, byte [esi+ecx]
 
 
