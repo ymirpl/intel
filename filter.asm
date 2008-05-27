@@ -32,8 +32,8 @@
 
 %define WIDTH			[ebp+12]
 %define HEIGHT			[ebp+16]
-%define W			[ebp+20]
-%define H			[ebp+24]
+%define W			[ebp+24]
+%define H			[ebp+28]
 
 
 
@@ -80,12 +80,12 @@ ok_aligned:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	; bedziemy liczyc mianownik
-	mov	eax, [ebp+12]	; eax = width
-	inc	eax		; eax = width + 1
-	mov	edx, [ebp+16]	; edx = Height
-	inc	edx		; edx = height + 1
+	mov	eax, W 		; eax = w
+	inc	eax		; eax = w + 1
+	mov	edx, H		; edx = H
+	inc	edx		; edx = h + 1
 	mul	edx		; edx = mianownik
-	mov	HYPHEN, edx	; zapisujemy sobie mianownik
+	mov	HYPHEN, eax	; zapisujemy sobie mianownik
 	
 	; init WINDOWWIDTH
 	mov	ebx, [ebp+24]	; width
@@ -151,11 +151,20 @@ ok_aligned:
 	mov	ULIMIT, eax
 	add	eax, IMGSIZE
 	mov	DLIMIT, eax
+
+	; init UP i DV
+
+	mov UV, esi
+	mov eax, DLIMIT
+	sub eax, WIDTH
+	mov DV, eax
 	
 
 loopX:
 	;movs	LV, LROWB 	; init wartosci brzegowych
 	;movs	RV, RROWB		 
+	;cmp
+	
 	
 	loopY:
 		lea eax, [esi + ecx]	
