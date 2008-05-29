@@ -22,6 +22,8 @@
 %define UV			[ebp-80] ; gorny 
 %define DV			[ebp-84] ; dolny 
 
+%define MASKSTART		[ebp-88]
+
 
 %define WINDOWWIDTH		[ebp-32]
 %define WINDOWHEIGHT		[ebp-36]
@@ -80,6 +82,7 @@ ok_aligned:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	; bedziemy liczyc mianownik
+hyphen:
 	mov	eax, W 		; eax = w
 	inc	eax		; eax = w + 1
 	mov	edx, H		; edx = H
@@ -126,8 +129,6 @@ ok_aligned:
 
 	; bedziemy filtrowac
 
-
-
 	; najpierw wypelniamy cale buforki
 
 	; init ecx
@@ -140,24 +141,52 @@ ok_aligned:
 	mul	edx
 	mov	ecx, eax 	; ecx = (3*width + junk)*h	
 	neg	ecx		; -ecx
-				; dotad sie dobrze liczy
+	mov	MASKSTART, eax	; dotad sie dobrze liczy
+
+	
+		; DEBUG
+	jmp debug
+debug:	
 
 	; init LROWB i RROWB ULIMIT i DLIMIT
 	mov	LROWB, esi
-	mov	eax, esi
-	add	eax, WIDTH
+	mov	ebx, WIDTH
+	lea	eax, [02*ebx]
+	add	eax, ebx
+	add	eax, esi
 	mov	RROWB, eax	
 	mov	eax, esi
 	mov	ULIMIT, eax
 	add	eax, IMGSIZE
 	mov	DLIMIT, eax
 
-	; init UP i DV
+	; init UP i DV LV i RV
 
-	mov UV, esi
-	mov eax, DLIMIT
-	sub eax, WIDTH
-	mov DV, eax
+	mov eax, esi
+	mov eax, [eax]
+	mov UV, eax
+	;mov eax, DLIMIT
+	mov edx, WIDTH
+	mov ebx, ALIGNJUNK
+	lea eax, [ebx+ 02*edx]
+	add eax, edx
+	mov ecx, DLIMIT
+	sub ecx, eax
+	mov ecx, [ecx]
+	mov DV, ecx
+
+	mov eax, LROWB
+	mov eax, [eax]
+	mov LV, eax
+
+	mov eax, RROWB
+	mov eax, [eax]
+	mov RV, eax
+
+
+
+	; wiadomo jak wyglada start, 3/4 maski jest poza obrazkiem
+	; do initu buforkow mozna te wiedze wykorzystac i nie patrzec czy wychodzi poza, bo wychodzi.
 	
 
 loopX:
