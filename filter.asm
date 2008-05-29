@@ -145,10 +145,12 @@ hyphen:
 
 	
 		; DEBUG
-	jmp debug
-debug:	
+
 
 	; init LROWB i RROWB ULIMIT i DLIMIT
+
+	jmp debug
+debug:	
 	mov	LROWB, esi
 	mov	ebx, WIDTH
 	lea	eax, [02*ebx]
@@ -157,8 +159,19 @@ debug:
 	mov	RROWB, eax	
 	mov	eax, esi
 	mov	ULIMIT, eax
-	add	eax, IMGSIZE
-	mov	DLIMIT, eax
+
+	mov	eax, ALIGNJUNK
+	mov	ecx, WIDTH
+	lea	eax, [eax + 02*ecx]
+	add	eax, ecx
+	;mul	dword HEIGHT
+	mov	edx, HEIGHT
+	mul	edx
+	mov	ecx, esi
+	add	ecx, eax
+	
+	;add	eax, IMGSIZE
+	mov	DLIMIT, ecx
 
 	; init UP i DV LV i RV
 
@@ -180,6 +193,7 @@ debug:
 	mov LV, eax
 
 	mov eax, RROWB
+	sub eax, 3
 	mov eax, [eax]
 	mov RV, eax
 
@@ -196,11 +210,11 @@ loopX:
 	
 	
 	loopY:
-		lea eax, [esi + ecx]	
-		cmp eax, ULIMIT 
+	;	lea eax, [esi + ecx]	
+	;	cmp eax, ULIMIT 
 	
 	;push	dword [esi]	; tu jest to co wstawimy, jak wyjdziemy za zakres z lewej albo z gory
-		movzx	eax, byte [esi+ecx]
+	;	movzx	eax, byte [esi+ecx]
 
 
 	pop	ebx		; Epilog
