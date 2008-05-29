@@ -23,6 +23,7 @@
 %define DV			[ebp-84] ; dolny 
 
 %define MASKSTART		[ebp-88]
+%define BOFF			[ebp-92]
 
 
 %define WINDOWWIDTH		[ebp-32]
@@ -62,7 +63,7 @@ filter:
 	; liczymy ile jest smiecia na koniec kazdego wiersza
 	push	ebp		; Prolog.
         mov	ebp, esp
-	sub	esp, 90		; miejsce na locale
+	sub	esp, 92		; miejsce na locale
 	push	edi
 	push	esi
 	push	ebx
@@ -149,8 +150,7 @@ hyphen:
 
 	; init LROWB i RROWB ULIMIT i DLIMIT
 
-	jmp debug
-debug:	
+
 	mov	LROWB, esi
 	mov	ebx, WIDTH
 	lea	eax, [02*ebx]
@@ -164,7 +164,6 @@ debug:
 	mov	ecx, WIDTH
 	lea	eax, [eax + 02*ecx]
 	add	eax, ecx
-	;mul	dword HEIGHT
 	mov	edx, HEIGHT
 	mul	edx
 	mov	ecx, esi
@@ -173,12 +172,10 @@ debug:
 	;add	eax, IMGSIZE
 	mov	DLIMIT, ecx
 
-	; init UP i DV LV i RV
 
 	mov eax, esi
 	mov eax, [eax]
 	mov UV, eax
-	;mov eax, DLIMIT
 	mov edx, WIDTH
 	mov ebx, ALIGNJUNK
 	lea eax, [ebx+ 02*edx]
@@ -201,6 +198,48 @@ debug:
 
 	; wiadomo jak wyglada start, 3/4 maski jest poza obrazkiem
 	; do initu buforkow mozna te wiedze wykorzystac i nie patrzec czy wychodzi poza, bo wychodzi.
+	jmp debug
+debug:	
+
+	mov BOFF, dword 0x0
+	; obieg tego prostokata co jest na lewo poza calkiem, 
+	
+	mov eax, WINDOWHEIGHT
+	push eax
+
+	mov ebx, UV
+	and ebx, 0x00FF0000 ; red
+	shr ebx, 16
+	mul ebx
+
+	mov ecx, SUMBFFR
+	add ecx, BOFF
+	mov [ecx], eax
+
+
+	mov eax, [esp]
+	mov ebx, UV
+	and ebx, 0x0000FF00 ; green
+	shr ebx, 8
+	mul ebx
+
+	mov ecx, SUMBFFG
+	add ecx, BOFF 
+	mov [ecx], eax
+	
+
+	mov eax, [esp]
+	mov ebx, UV
+	and ebx, 0x000000FF ; blue
+	mul ebx
+
+	mov ecx, SUMBFFB
+	add ecx, BOFF
+	mov [ecx], eax
+
+	mov BOFF, dword 0x8
+	pop eax 	; tylko w celu wyczyszczenia stotsu
+
 	
 
 loopX:
