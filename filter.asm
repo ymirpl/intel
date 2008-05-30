@@ -180,10 +180,13 @@ debug:
 		call Ygora
 		mov 	edi, BUFF
 		add	edi, BOFF
+		mov	eax, SR
 		mov 	[edi], eax
-	        mov	[edi+4], ebx
-		mov	[edi+8], edx
-		add	BOFF, dword 0x8	; przestawiamy sie na nowe miejsce w buforku	
+	        mov	eax, SG	
+	        mov	[edi+4], eax
+		mov	eax, SB
+		mov	[edi+8], eax
+		add	BOFF, dword 12	; przestawiamy sie na nowe miejsce w buforku	
 
 		mov	edi, X
 		dec	edi
@@ -221,7 +224,7 @@ debug:
 			mov	eax, ebx
 			and	eax, 0x0000FF00
 			shr	eax, 8
-			add	SR, eax
+			add	SG, eax
 
 			mov	eax, ebx
 			and	eax, 0x000000FF
