@@ -243,15 +243,19 @@ debug:
 
 	; mamy z gory buforek wypelniony, czas najwyzszy cos podzielic i przepisac
 
-	mov	BOFF, dword 0 ; zerujemy offsetu buforka
 	mov	esi, BUFF
 	xor	eax, eax
+	xor	edx, edx
+	xor	ebx, ebx
 
 	mov	ecx, WINDOWWIDTH
-	loopSum:
-		add	eax, [esi+04*ecx]
-
-
+	loopSumR:
+		add	eax, [esi]
+		add	edx, [esi+4]
+		add	ebx, [esi+8]
+		add	esi, dword 0x10
+	loop loopSumR	
+	
 	jmp	endlabel
 
 
