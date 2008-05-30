@@ -33,7 +33,7 @@
 ;%define DVG			[ebp-85]
 ;%define DVB			[ebp-86]
 
-%define MASKSTART		[ebp-88]
+%define MASKSTARTUP		[ebp-88]
 %define BOFF			[ebp-92]
 
 
@@ -61,6 +61,53 @@ global filter
 extern malloc
 
 section .text
+
+
+
+
+	Ygora:
+
+		mov	SB, dword 0 ; ustawiamy sumy na zero
+		mov	SR, dword 0
+		mov	SG, dword 0
+		
+		push 	ecx ; ten counter to na pozniej tez potrzebny
+		mov	ecx, WINDOWHEIGHT
+		
+		mov 	esi, MASKSTARTUP
+
+		loopYgora:	
+
+			push 	esi	; 0x696 leci na stos
+			mov	eax, X
+			lea 	eax, [eax +02*eax]  ; ustawiamy sie na dobra kolumne
+			add	esi, eax
+
+			mov	eax, [esi]
+			mov	ebx, eax		; potem sobie wartosc bajtu z ebx bierzemy
+
+			and	eax, 0x00FF0000 ; moze to i czerwony	
+			shr	eax, 16
+			add	SR, eax	
+
+			mov	eax, ebx
+			and	eax, 0x0000FF00
+			shr	eax, 8
+			add	SG, eax
+
+			mov	eax, ebx
+			and	eax, 0x000000FF
+			add	SB, eax
+
+			pop 	esi
+			sub	esi, ROW
+
+			cmp	esi, IN
+			cmovl	esi, IN
+		loop loopYgora	
+		
+		pop ecx	
+	ret
 
 ;
 ; void process (unsigned char* dealigned_src, int width, int height, unsigned char* dst, int w, int h, unsigned char* brightness_map);;		
@@ -123,9 +170,7 @@ hyphen:
 
 	; init BUFFERs
 	mov	eax, WINDOWWIDTH
-	mov	edx, dword 0x3
-	mul	edx
-	shl	eax, 2 		; na kazdy kolorek po 4 bajty
+	shl	eax, 4 		; na kazdy kolorek po 4 bajty, tzymamy RGB pusty RGB pusty
 	push	eax
 
 	; Malloc wpisuje adres do eax
@@ -166,6 +211,7 @@ debug:
 	mov	edx, H
 	mul 	edx ; edx = row * h
 	add	esi, eax ; esi ustawione
+	mov	MASKSTARTUP, esi
 
 	mov	ebx, BUFF
 	mov	eax, W
@@ -181,12 +227,12 @@ debug:
 		mov 	edi, BUFFEND	; wypelniamy bufor od konca
 		sub	edi, BOFF
 		mov	eax, SR
-		mov 	[edi-8], eax
+		mov 	[edi-12], eax
 	        mov	eax, SG	
-	        mov	[edi-4], eax
+	        mov	[edi-8], eax
 		mov	eax, SB
-		mov	[edi], eax
-		add	BOFF, dword 12	; przestawiamy sie na nowe miejsce w buforku	
+		mov	[edi-4], eax
+		add	BOFF, dword 16	; przestawiamy sie na nowe miejsce w buforku	trzymamy tak : RGB, puste, RGB, puste itp
 
 		mov	edi, X
 		dec	edi
@@ -195,58 +241,21 @@ debug:
 		mov	X, edi ; aktualizujemy X
 	loop Xloop	
 
+	; mamy z gory buforek wypelniony, czas najwyzszy cos podzielic i przepisac
+
+	mov	BOFF, dword 0 ; zerujemy offsetu buforka
+	mov	esi, BUFF
+	xor	eax, eax
+
+	mov	ecx, WINDOWWIDTH
+	loopSum:
+		add	eax, [esi+04*ecx]
+
 
 	jmp	endlabel
 
 
 
-	Ygora:
-
-		mov	SB, dword 0 ; ustawiamy sumy na zero
-		mov	SR, dword 0
-		mov	SG, dword 0
-		
-		push 	ecx ; ten counter to na pozniej tez potrzebny
-		mov	ecx, WINDOWHEIGHT
-		
-		mov 	esi, IN
-		mov	eax, ROW
-		mov	edx, H
-		mul 	edx ; edx = row * h
-		add	esi, eax ; zawsze na dole maski zaczynamy
-
-		loopYgora:	
-
-			push 	esi	; 0x696 leci na stos
-			mov	eax, X
-			lea 	eax, [eax +02*eax]  ; ustawiamy sie na dobra kolumne
-			add	esi, eax
-
-			mov	eax, [esi]
-			mov	ebx, eax		; potem sobie wartosc bajtu z ebx bierzemy
-
-			and	eax, 0x00FF0000 ; moze to i czerwony	
-			shr	eax, 16
-			add	SR, eax	
-
-			mov	eax, ebx
-			and	eax, 0x0000FF00
-			shr	eax, 8
-			add	SG, eax
-
-			mov	eax, ebx
-			and	eax, 0x000000FF
-			add	SB, eax
-
-			pop 	esi
-			sub	esi, ROW
-
-			cmp	esi, IN
-			cmovl	esi, IN
-		loop loopYgora	
-		
-		pop ecx	
-	ret
 
 
 
