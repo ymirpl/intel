@@ -150,8 +150,10 @@ ok_aligned:
 	;init HYPHEN 
 hyphen:
 	mov	eax, W 		; eax = w
+	shl	eax, 1
 	inc	eax		; eax = w + 1
 	mov	edx, H		; edx = H
+	shl	edx, 1
 	inc	edx		; edx = h + 1
 	mul	edx		; edx = mianownik
 	mov	HYPHEN, eax	; zapisujemy sobie mianownik
@@ -255,6 +257,15 @@ debug:
 		add	ebx, [esi+8]
 		add	esi, dword 0x10
 	loop loopSumR	
+
+	;; jest posumowane dzielic budziem
+
+	shl	eax, 16
+	;div	dword HYPHEN
+	mov	eax, dword 0x19
+	mov	edx, HYPHEN
+        div 	dl	
+	movzx	eax, al
 	
 	jmp	endlabel
 
