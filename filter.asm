@@ -164,7 +164,7 @@ debug:	; init BUFFERs
 	mov	eax, ROW
 	mov	edx, H
 	mul 	edx ; edx = row * h
-	add	esi, edx ; esi ustawione
+	add	esi, eax ; esi ustawione
 
 	mov	ebx, BUFF
 	mov	eax, W
