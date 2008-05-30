@@ -121,8 +121,7 @@ hyphen:
 	inc	ebx
 	mov	WINDOWHEIGHT, ebx
 
-	jmp debug
-debug:	; init BUFFERs
+	; init BUFFERs
 	mov	eax, WINDOWWIDTH
 	mov	edx, dword 0x3
 	mul	edx
@@ -160,6 +159,8 @@ debug:	; init BUFFERs
 	; najpierw wypelniamy cale buforki
 	
 	; esi na 0x696
+	jmp debug
+debug:
 	mov 	esi, IN
 	mov	eax, ROW
 	mov	edx, H
@@ -201,7 +202,8 @@ debug:	; init BUFFERs
 		mov	SB, dword 0 ; ustawiamy sumy na zero
 		mov	SR, dword 0
 		mov	SG, dword 0
-
+		
+		push 	ecx ; ten counter to na pozniej tez potrzebny
 		mov	ecx, WINDOWHEIGHT
 
 		loopYgora:	
@@ -210,18 +212,18 @@ debug:	; init BUFFERs
 			add 	esi, X  ; ustawiamy sie na dobra kolumne
 
 			mov	eax, [esi]
-			push	eax		; ze stosu se bedziemy brac wartosc odpowiednia
+			mov	ebx, eax		; potem sobie wartosc bajtu z ebx bierzemy
 
 			and	eax, 0x00FF0000 ; moze to i czerwony	
 			shr	eax, 16
 			add	SR, eax	
 
-			mov	eax, [esp]
+			mov	eax, ebx
 			and	eax, 0x0000FF00
 			shr	eax, 8
 			add	SR, eax
 
-			mov	eax, [esp]
+			mov	eax, ebx
 			and	eax, 0x000000FF
 			add	SB, eax
 
@@ -232,7 +234,7 @@ debug:	; init BUFFERs
 			cmovl	esi, IN
 		loop loopYgora	
 		
-			
+		pop ecx	
 	ret
 
 
