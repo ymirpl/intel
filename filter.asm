@@ -8,7 +8,7 @@
 
 %define X			[ebp-20]
 %define ALIGNJUNK		[ebp-24]
-%define XMASK			[ebp-28]
+%define SB			[ebp-28]
 %define HYPHEN			[ebp-52]
 
 %define LROWB			[ebp-56] ; lewy brzeg wiersza
@@ -21,13 +21,13 @@
 ;%define LVB			[ebp-73]
 ;%define LVG			[ebp-74]
 
-%define YMASK			[ebp-76] ; prawy 
+%define SG			[ebp-76] 
 ;%define RVG			[ebp-77]
 ;%define RVB			[ebp-78]
 
-%define UVR			[ebp-80] ; gorny
-%define UVB			[ebp-81]
-%define UVG			[ebp-82]
+;%define UVR			[ebp-80] ; gorny
+;%define UVB			[ebp-81]
+;%define UVG			[ebp-82]
 
 %define Y			[ebp-84] ; dolny
 ;%define DVG			[ebp-85]
@@ -41,14 +41,16 @@
 %define WINDOWHEIGHT		[ebp-36]
 %define ROW			[ebp-96]
 
-%define SUMBFFR			[ebp-40]
-%define SUMBFFG			[ebp-44]
-%define SUMBFFB			[ebp-48]
+%define BUFF			[ebp-40]
+%define BUFFEND			[ebp-44]
+%define SR			[ebp-48]
 
 %define WIDTH			[ebp+12]
 %define HEIGHT			[ebp+16]
 %define W			[ebp+24]
 %define H			[ebp+28]
+%define IN			[ebp+8]
+%define OUT			[ebp+20]
 
 
 
@@ -94,7 +96,11 @@ ok_aligned:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	; bedziemy liczyc mianownik
+
+	; init ZERO
+	mov ZERO, dword 0x0
+
+	;init HYPHEN 
 hyphen:
 	mov	eax, W 		; eax = w
 	inc	eax		; eax = w + 1
@@ -115,19 +121,21 @@ hyphen:
 	inc	ebx
 	mov	WINDOWHEIGHT, ebx
 
-	; init BUFFERs
+	jmp debug
+debug:	; init BUFFERs
 	mov	eax, WINDOWWIDTH
-	shl	eax, 2
+	mov	edx, dword 0x3
+	mul	edx
+	shl	eax, 2 		; na kazdy kolorek po 4 bajty
 	push	eax
 
-			; Malloc wpisuje adres do eax
+	; Malloc wpisuje adres do eax
 	call	malloc
-	mov	SUMBFFR, eax
-	call 	malloc
-	mov	SUMBFFG, eax
-	call	malloc
-	mov	SUMBFFB, eax
-	add	esp, 4		; usun eax ze stosu
+	mov	BUFF, eax
+	pop	eax 
+	add	eax, BUFF
+	sub 	eax, 4
+	mov	BUFFEND, eax	; buffend pokazuje na ostatni
 
 	; init IMGSIZE
 	mov	eax, [ebp+12]	; width
@@ -136,11 +144,11 @@ hyphen:
 	mov	IMGSIZE, eax
 
 	; init ROW
-	mov eax, WIDTH
-	mov edx, 0x3
-	mul edx
-	add eax, ALIGNJUNK
-	mov ROW, eax
+	mov 	eax, WIDTH
+	mov 	edx, 0x3
+	mul 	edx
+	add 	eax, ALIGNJUNK
+	mov 	ROW, eax
 
 
 	; init src and dst
@@ -150,146 +158,86 @@ hyphen:
 	; bedziemy filtrowac
 
 	; najpierw wypelniamy cale buforki
-
-	; init ecx
-
-	mov	eax, ROW 
-	mov	edx, WINDOWHEIGHT
-	mul	edx
-	mov	YMASK, eax	; dotad sie dobrze liczy
-	mov	XMASK, dword 0x0
-	mov	X, dword 0x0
-	mov	eax, HEIGHT
-	mov	Y, eax  
-
 	
-		; DEBUG
+	; esi na 0x696
+	mov 	esi, IN
+	mov	eax, ROW
+	mov	edx, H
+	mul 	edx ; edx = row * h
+	add	esi, edx ; esi ustawione
+
+	mov	ebx, BUFF
+	mov	eax, W
+	mov	X, eax ; X = W (zaczynamy od prawej strony maski)
 
 
-	; init LROWB i RROWB ULIMIT i DLIMIT
+	mov	BOFF, dword 0x0
+
+	; init countera w poziomie
+	mov	ecx, WINDOWWIDTH 
+	Xloop:
+		call Ygora
+		mov 	edi, BUFF
+		add	edi, BOFF
+		mov 	[edi], eax
+	        mov	[edi+4], ebx
+		mov	[edi+8], edx
+		add	BOFF, dword 0x8	; przestawiamy sie na nowe miejsce w buforku	
+
+		mov	edi, X
+		dec	edi
+		cmp	edi, 0
+		cmovl	edi, ZERO
+		mov	X, edi ; aktualizujemy X
+	loop Xloop	
 
 
-	mov	LROWB, esi
-	mov	ebx, WIDTH
-	lea	eax, [02*ebx]
-	add	eax, ebx
-	add	eax, esi
-	mov	RROWB, eax	
-	mov	eax, esi
-	mov	ULIMIT, eax
-
-	mov	eax, ALIGNJUNK
-	mov	ecx, WIDTH
-	lea	eax, [eax + 02*ecx]
-	add	eax, ecx
-	mov	edx, HEIGHT
-	mul	edx
-	mov	ecx, esi
-	add	ecx, eax
-	
-	;add	eax, IMGSIZE
-	mov	DLIMIT, ecx
-
-
-	jmp debug
-debug:	
-	mov eax, esi
-	movzx edx, byte [eax]
-	mov UVB, edx
-	movzx edx, byte [eax+1]
-	mov UVG, edx
-	movzx edx, byte [eax+2]
-	mov UVR, edx
-	
-;	mov edx, WIDTH
-;	mov ebx, ALIGNJUNK
-;	lea eax, [ebx+ 02*edx]
-;	add eax, edx
-;	mov ecx, DLIMIT
-;	sub ecx, eax
-;	mov edx, [ecx]
-;	mov DVB, edx
-;	mov edx, [ecx+1]
-;	mov DVG, edx
-;	mov edx, [ecx+2]
-;	mov DVR, edx
-
-;	mov eax, LROWB
-;	mov edx, [eax]
-;	mov LVB, edx
-;	mov edx, [eax+1]
-;	mov LVG, edx
-;	mov edx, [eax+2]
-;	mov LVR, edx
-
-;	mov eax, RROWB
-;	mov edx, [eax-1]
-;	mov RVR, edx
-;	mov edx, [eax-2]
-;	mov RVG, edx
-;	mov edx, [eax-3]
-;	mov RVB, edx
+	jmp	endlabel
 
 
 
-	; wiadomo jak wyglada start, 3/4 maski jest poza obrazkiem
-	; do initu buforkow mozna te wiedze wykorzystac i nie patrzec czy wychodzi poza, bo wychodzi.
+	Ygora:
+
+		mov	SB, dword 0 ; ustawiamy sumy na zero
+		mov	SR, dword 0
+		mov	SG, dword 0
+
+		mov	ecx, WINDOWHEIGHT
+
+		loopYgora:	
+
+			push 	esi	; 0x696 leci na stos
+			add 	esi, X  ; ustawiamy sie na dobra kolumne
+
+			mov	eax, [esi]
+			push	eax		; ze stosu se bedziemy brac wartosc odpowiednia
+
+			and	eax, 0x00FF0000 ; moze to i czerwony	
+			shr	eax, 16
+			add	SR, eax	
+
+			mov	eax, [esp]
+			and	eax, 0x0000FF00
+			shr	eax, 8
+			add	SR, eax
+
+			mov	eax, [esp]
+			and	eax, 0x000000FF
+			add	SB, eax
+
+			pop 	esi
+			sub	esi, ROW
+
+			cmp	esi, IN
+			cmovl	esi, IN
+		loop loopYgora	
+		
+			
+	ret
 
 
-	mov BOFF, dword 0x0
-	mov ecx, W
-	; obieg tego prostokata co jest na lewo poza calkiem, 
-	
-	mov eax, WINDOWHEIGHT
-	push eax
 
-outside_rectangles:
-	mov eax, [esp]	
-	mov ebx, UVR
-	mul ebx
-
-	mov ebx, SUMBFFR
-	add ebx, BOFF
-	mov [ebx], eax
-
-
-	mov eax, [esp]
-	mov ebx, UVG
-	mul ebx
-
-	mov ebx, SUMBFFG
-	add ebx, BOFF 
-	mov [ebx], eax
-	
-
-	mov eax, [esp]
-	mov ebx, UVB
-	mul ebx
-
-	mov ebx, SUMBFFB
-	add ebx, BOFF
-	mov [ebx], eax
-
-	add BOFF, byte 0x4
-	loop outside_rectangles
-	pop eax 	; tylko w celu wyczyszczenia stotsu
-
-	
-
-loopX:
-	;movs	LV, LROWB 	; init wartosci brzegowych
-	;movs	RV, RROWB		 
-	;cmp
-	
-	
-	loopY:
-	;	lea eax, [esi + ecx]	
-	;	cmp eax, ULIMIT 
-	
-	;push	dword [esi]	; tu jest to co wstawimy, jak wyjdziemy za zakres z lewej albo z gory
-	;	movzx	eax, byte [esi+ecx]
-
-
+endlabel:
 	pop	ebx		; Epilog
 	pop	esi
 	pop	edi
