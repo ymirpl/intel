@@ -208,6 +208,12 @@ debug:
 		
 		push 	ecx ; ten counter to na pozniej tez potrzebny
 		mov	ecx, WINDOWHEIGHT
+		
+		mov 	esi, IN
+		mov	eax, ROW
+		mov	edx, H
+		mul 	edx ; edx = row * h
+		add	esi, eax ; zawsze na dole maski zaczynamy
 
 		loopYgora:	
 
