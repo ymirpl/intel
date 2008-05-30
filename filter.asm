@@ -39,6 +39,7 @@
 
 %define WINDOWWIDTH		[ebp-32]
 %define WINDOWHEIGHT		[ebp-36]
+%define ROW			[ebp-96]
 
 %define SUMBFFR			[ebp-40]
 %define SUMBFFG			[ebp-44]
@@ -74,7 +75,7 @@ filter:
 	; liczymy ile jest smiecia na koniec kazdego wiersza
 	push	ebp		; Prolog.
         mov	ebp, esp
-	sub	esp, 92		; miejsce na locale
+	sub	esp, 100	; miejsce na locale
 	push	edi
 	push	esi
 	push	ebx
@@ -134,6 +135,13 @@ hyphen:
 	mul	edx		; wynik  w eax
 	mov	IMGSIZE, eax
 
+	; init ROW
+	mov eax, WIDTH
+	mov edx, 0x3
+	mul edx
+	add eax, ALIGNJUNK
+	mov ROW, eax
+
 
 	; init src and dst
 	mov	esi, [ebp+8]	; wejsciowy obrazek 
@@ -145,15 +153,14 @@ hyphen:
 
 	; init ecx
 
-	mov	ebx, ALIGNJUNK
-	mov	edx, WIDTH
-	lea	eax, [ebx + 02*edx]
-	add	eax, edx
-	mov	edx, H
+	mov	eax, ROW 
+	mov	edx, WINDOWHEIGHT
 	mul	edx
-	mov	ecx, eax 	; ecx = (3*width + junk)*h	
-	neg	ecx		; -ecx
-	mov	MASKSTART, eax	; dotad sie dobrze liczy
+	mov	YMASK, eax	; dotad sie dobrze liczy
+	mov	XMASK, dword 0x0
+	mov	X, dword 0x0
+	mov	eax, HEIGHT
+	mov	Y, eax  
 
 	
 		; DEBUG
