@@ -8,7 +8,7 @@
 
 %define X			[ebp-20]
 %define ALIGNJUNK		[ebp-24]
-%define NEWSOURCE		[ebp-28]
+%define XMASK			[ebp-28]
 %define HYPHEN			[ebp-52]
 
 %define LROWB			[ebp-56] ; lewy brzeg wiersza
@@ -17,10 +17,21 @@
 %define DLIMIT			[ebp-68] ; dolny brzeg obrazka
 
 
-%define LV			[ebp-72] ; lewy wartosc
-%define RV			[ebp-76] ; prawy 
-%define UV			[ebp-80] ; gorny 
-%define DV			[ebp-84] ; dolny 
+;%define LVR			[ebp-72] ; lewy wartosc
+;%define LVB			[ebp-73]
+;%define LVG			[ebp-74]
+
+%define YMASK			[ebp-76] ; prawy 
+;%define RVG			[ebp-77]
+;%define RVB			[ebp-78]
+
+%define UVR			[ebp-80] ; gorny
+%define UVB			[ebp-81]
+%define UVG			[ebp-82]
+
+%define Y			[ebp-84] ; dolny
+;%define DVG			[ebp-85]
+;%define DVB			[ebp-86]
 
 %define MASKSTART		[ebp-88]
 %define BOFF			[ebp-92]
@@ -173,71 +184,87 @@ hyphen:
 	mov	DLIMIT, ecx
 
 
+	jmp debug
+debug:	
 	mov eax, esi
-	mov eax, [eax]
-	mov UV, eax
-	mov edx, WIDTH
-	mov ebx, ALIGNJUNK
-	lea eax, [ebx+ 02*edx]
-	add eax, edx
-	mov ecx, DLIMIT
-	sub ecx, eax
-	mov ecx, [ecx]
-	mov DV, ecx
+	movzx edx, byte [eax]
+	mov UVB, edx
+	movzx edx, byte [eax+1]
+	mov UVG, edx
+	movzx edx, byte [eax+2]
+	mov UVR, edx
+	
+;	mov edx, WIDTH
+;	mov ebx, ALIGNJUNK
+;	lea eax, [ebx+ 02*edx]
+;	add eax, edx
+;	mov ecx, DLIMIT
+;	sub ecx, eax
+;	mov edx, [ecx]
+;	mov DVB, edx
+;	mov edx, [ecx+1]
+;	mov DVG, edx
+;	mov edx, [ecx+2]
+;	mov DVR, edx
 
-	mov eax, LROWB
-	mov eax, [eax]
-	mov LV, eax
+;	mov eax, LROWB
+;	mov edx, [eax]
+;	mov LVB, edx
+;	mov edx, [eax+1]
+;	mov LVG, edx
+;	mov edx, [eax+2]
+;	mov LVR, edx
 
-	mov eax, RROWB
-	sub eax, 3
-	mov eax, [eax]
-	mov RV, eax
+;	mov eax, RROWB
+;	mov edx, [eax-1]
+;	mov RVR, edx
+;	mov edx, [eax-2]
+;	mov RVG, edx
+;	mov edx, [eax-3]
+;	mov RVB, edx
 
 
 
 	; wiadomo jak wyglada start, 3/4 maski jest poza obrazkiem
 	; do initu buforkow mozna te wiedze wykorzystac i nie patrzec czy wychodzi poza, bo wychodzi.
-	jmp debug
-debug:	
+
 
 	mov BOFF, dword 0x0
+	mov ecx, W
 	; obieg tego prostokata co jest na lewo poza calkiem, 
 	
 	mov eax, WINDOWHEIGHT
 	push eax
 
-	mov ebx, UV
-	and ebx, 0x00FF0000 ; red
-	shr ebx, 16
+outside_rectangles:
+	mov eax, [esp]	
+	mov ebx, UVR
 	mul ebx
 
-	mov ecx, SUMBFFR
-	add ecx, BOFF
-	mov [ecx], eax
+	mov ebx, SUMBFFR
+	add ebx, BOFF
+	mov [ebx], eax
 
 
 	mov eax, [esp]
-	mov ebx, UV
-	and ebx, 0x0000FF00 ; green
-	shr ebx, 8
+	mov ebx, UVG
 	mul ebx
 
-	mov ecx, SUMBFFG
-	add ecx, BOFF 
-	mov [ecx], eax
+	mov ebx, SUMBFFG
+	add ebx, BOFF 
+	mov [ebx], eax
 	
 
 	mov eax, [esp]
-	mov ebx, UV
-	and ebx, 0x000000FF ; blue
+	mov ebx, UVB
 	mul ebx
 
-	mov ecx, SUMBFFB
-	add ecx, BOFF
-	mov [ecx], eax
+	mov ebx, SUMBFFB
+	add ebx, BOFF
+	mov [ebx], eax
 
-	mov BOFF, dword 0x8
+	add BOFF, byte 0x4
+	loop outside_rectangles
 	pop eax 	; tylko w celu wyczyszczenia stotsu
 
 	
