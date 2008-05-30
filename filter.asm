@@ -212,7 +212,9 @@ debug:
 		loopYgora:	
 
 			push 	esi	; 0x696 leci na stos
-			add 	esi, X  ; ustawiamy sie na dobra kolumne
+			mov	eax, X
+			lea 	eax, [eax +02*eax]  ; ustawiamy sie na dobra kolumne
+			add	esi, eax
 
 			mov	eax, [esi]
 			mov	ebx, eax		; potem sobie wartosc bajtu z ebx bierzemy
