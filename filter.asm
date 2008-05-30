@@ -178,14 +178,14 @@ debug:
 	mov	ecx, WINDOWWIDTH 
 	Xloop:
 		call Ygora
-		mov 	edi, BUFF
-		add	edi, BOFF
+		mov 	edi, BUFFEND	; wypelniamy bufor od konca
+		sub	edi, BOFF
 		mov	eax, SR
-		mov 	[edi], eax
+		mov 	[edi-8], eax
 	        mov	eax, SG	
-	        mov	[edi+4], eax
+	        mov	[edi-4], eax
 		mov	eax, SB
-		mov	[edi+8], eax
+		mov	[edi], eax
 		add	BOFF, dword 12	; przestawiamy sie na nowe miejsce w buforku	
 
 		mov	edi, X
