@@ -1,7 +1,6 @@
 
 
-; zmienne lokalne f-cji glownej
-
+;; assert("it's goin' to be ok");
 
 %define IMGSIZE			[ebp-4]
 %define ZERO			[ebp-16]
@@ -112,6 +111,7 @@ section .text
 
 
 	div_set:
+		push	ecx
 		mov	esi, BUFF
 		xor	eax, eax
 		xor	edx, edx
@@ -134,10 +134,7 @@ section .text
 		idiv 	ecx	
 
 		mov	edi, XEDI 
-		mov	esi, XGLOB
-		lea	edi, [edi+02*esi] ; stoimy dobrze
-		add	edi, esi
-
+		
 		mov	[edi], eax
 
 		pop	edx
@@ -153,6 +150,8 @@ section .text
 
 		add	edi, dword 3	; inkrementujemy wskaznik na wynik
 		mov	XEDI, edi
+		
+		pop	ecx
 		
 	ret	
 
@@ -315,6 +314,53 @@ debug:
 
 
 	call 	div_set	
+
+	; init MASKSTARTUP do jazdy
+	mov	eax, MASKSTARTUP
+	mov	edx, W
+	lea	eax, [eax + 02*edx] 
+	add	eax, edx
+	mov	MASKSTARTUP, eax
+
+
+	; kolumienkami do konca wiersza
+	mov	BOFF, dword 0x0
+
+	; init	counter
+	mov	ecx, WIDTH
+	mov	edx, W
+	add	ecx, edx
+
+	; debug
+	mov	ecx, 2
+
+	; increment XGLOB
+	;mov	eax, XGLOB
+	;inc	eax
+	;mov	XGLOB, eax
+makeRow:
+		call	Ygora
+		mov	edi, BUFF
+		add	edi, BOFF
+
+		mov	eax, SR
+		mov 	[edi], eax
+		mov	eax, SG	
+		mov	[edi+4], eax
+		mov	eax, SB
+		mov	[edi+8], eax
+		add	BOFF, dword 16	; przestawiamy sie na nowe miejsce w buforku	trzymamy tak : RGB, puste, RGB, puste itp
+
+		call	div_set
+
+		mov	eax, MASKSTARTUP
+		mov	edx, eax		; na poczatek nienaruszona maska
+		add	eax, dword 0x3
+		cmp	eax, RROWB
+		cmovg	eax, edx
+		mov	MASKSTARTUP, eax
+
+loop	makeRow
 
 	jmp	endlabel
 
