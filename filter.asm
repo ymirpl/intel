@@ -101,8 +101,11 @@ section .text
 			pop 	esi
 			sub	esi, ROW
 
+			mov	ebx, IN
+			add	ebx, XGLOB	; szykujemy sie na ewentualnosc wyjscia z gory
+
 			cmp	esi, IN
-			cmovl	esi, IN
+			cmovl	esi, ebx
 		loop loopYgora	
 		
 		pop ecx	
@@ -320,7 +323,14 @@ debug:
 	mov	edx, W
 	lea	eax, [eax + 02*edx] 
 	add	eax, edx
+	add	eax, dword 0x3
 	mov	MASKSTARTUP, eax
+
+	; init XGLOB do jazdy
+	mov	eax, W
+	lea	eax, [eax + 02*eax]
+	add	eax, dword 0x3
+	mov	XGLOB, eax
 
 
 	; kolumienkami do konca wiersza
@@ -334,10 +344,6 @@ debug:
 	; debug
 	mov	ecx, 2
 
-	; increment XGLOB
-	;mov	eax, XGLOB
-	;inc	eax
-	;mov	XGLOB, eax
 makeRow:
 		call	Ygora
 		mov	edi, BUFF
@@ -359,6 +365,12 @@ makeRow:
 		cmp	eax, RROWB
 		cmovg	eax, edx
 		mov	MASKSTARTUP, eax
+
+		; increment XGLOB  ! W PIXELACH !
+		mov	eax, XGLOB
+		add	eax, 3
+		mov	XGLOB, eax
+
 
 loop	makeRow
 
