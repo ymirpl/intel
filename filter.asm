@@ -267,112 +267,143 @@ hyphen:
 	mov	XEDI, eax
 
 
-	 
-
-
-	; bedziemy filtrowac
-
-	; najpierw wypelniamy cale buforki
-	
-	; esi na 0x696
-	jmp debug
-debug:
-	
-	mov	esi, LROWB	; wejsciowy obrazek 
-	mov	eax, ROW
-	mov	edx, H
-	mul 	edx ; edx = row * h
-	add	esi, eax ; esi ustawione
-	mov	MASKSTARTUP, esi
-
-	mov	ebx, BUFF
-	mov	eax, W
-	mov	X, eax ; X = W (zaczynamy od prawej strony maski)
-
-
-	mov	BOFF, dword 0x0
-
-	; init countera w poziomie
-	mov	ecx, WINDOWWIDTH 
-	Xloop:
-		call Ygora
-		mov 	edi, BUFFEND	; wypelniamy bufor od konca
-		sub	edi, BOFF
-		mov	eax, SR
-		mov 	[edi-12], eax
-	        mov	eax, SG	
-	        mov	[edi-8], eax
-		mov	eax, SB
-		mov	[edi-4], eax
-		add	BOFF, dword 16	; przestawiamy sie na nowe miejsce w buforku	trzymamy tak : RGB, puste, RGB, puste itp
-
-		mov	edi, X
-		dec	edi
-		cmp	edi, 0
-		cmovl	edi, ZERO
-		mov	X, edi ; aktualizujemy X
-	loop Xloop	
-
-	; mamy z gory buforek wypelniony, czas najwyzszy cos podzielic i przepisac
-
-
-	call 	div_set	
-
-	; init MASKSTARTUP do jazdy
-	mov	eax, MASKSTARTUP
-	mov	edx, W
-	lea	eax, [eax + 02*edx] 
-	add	eax, edx
-	add	eax, dword 0x3
-	mov	MASKSTARTUP, eax
-
-	; init XGLOB do jazdy
-	mov	eax, W
-	lea	eax, [eax + 02*eax]
-	add	eax, dword 0x3
-	mov	XGLOB, eax
-
-
-	; kolumienkami do konca wiersza
-	mov	BOFF, dword 0x0
-
-	; init	counter
-	mov	ecx, WIDTH
-	mov	edx, W
-	add	ecx, edx
-
+	mov	ecx, HEIGHT ; po calym obrazki
 	; debug
-	mov	ecx, 2
+	shr 	ecx, 1	
 
-makeRow:
-		call	Ygora
-		mov	edi, BUFF
-		add	edi, BOFF
+rowsLoop:
+	push ecx
+		; bedziemy filtrowac
 
-		mov	eax, SR
-		mov 	[edi], eax
-		mov	eax, SG	
-		mov	[edi+4], eax
-		mov	eax, SB
-		mov	[edi+8], eax
-		add	BOFF, dword 16	; przestawiamy sie na nowe miejsce w buforku	trzymamy tak : RGB, puste, RGB, puste itp
+		; najpierw wypelniamy cale buforki
+		
+		; esi na 0x696
 
-		call	div_set
+		mov	esi, LROWB	; wejsciowy obrazek 
+		mov	eax, ROW
+		mov	edx, H
+		mul 	edx ; edx = row * h
+		add	esi, eax ; esi ustawione
+		mov	MASKSTARTUP, esi
 
+	;	mov	ebx, BUFF
+		mov	eax, W
+		mov	X, eax ; X = W (zaczynamy od prawej strony maski)
+
+
+		mov	BOFF, dword 0x0
+
+		; init countera w poziomie
+		mov	ecx, WINDOWWIDTH 
+		Xloop:
+			call Ygora
+			mov 	edi, BUFFEND	; wypelniamy bufor od konca
+			sub	edi, BOFF
+			mov	eax, SR
+			mov 	[edi-12], eax
+			mov	eax, SG	
+			mov	[edi-8], eax
+			mov	eax, SB
+			mov	[edi-4], eax
+			add	BOFF, dword 16	; przestawiamy sie na nowe miejsce w buforku	trzymamy tak : RGB, puste, RGB, puste itp
+
+			mov	edi, X
+			dec	edi
+			cmp	edi, 0
+			cmovl	edi, ZERO
+			mov	X, edi ; aktualizujemy X
+		loop Xloop	
+
+		; mamy z gory buforek wypelniony, czas najwyzszy cos podzielic i przepisac
+
+
+		call 	div_set	
+
+		; init MASKSTARTUP do jazdy
 		mov	eax, MASKSTARTUP
-		mov	edx, eax		; na poczatek nienaruszona maska
+		mov	edx, W
+		lea	eax, [eax + 02*edx] 
+		add	eax, edx
 		add	eax, dword 0x3
-		cmp	eax, RROWB
-		cmovg	eax, edx
 		mov	MASKSTARTUP, eax
 
-		; increment XGLOB  ! W PIXELACH !
-		mov	eax, XGLOB
-		add	eax, 3
+		; init XGLOB do jazdy
+		mov	eax, W
+		lea	eax, [eax + 02*eax]
+		add	eax, dword 0x3
 		mov	XGLOB, eax
 
 
-loop	makeRow
+		; kolumienkami do konca wiersza
+		mov	BOFF, dword 0x0
+
+		; init	counter
+		mov	ecx, WIDTH
+		dec	ecx 		; bo juz jeden zrobiony w starcie
+		
+	makeRow:
+			call	Ygora
+			mov	edi, BUFF
+			add	edi, BOFF
+
+			mov	eax, SR
+			mov 	[edi], eax
+			mov	eax, SG	
+			mov	[edi+4], eax
+			mov	eax, SB
+			mov	[edi+8], eax
+			add	BOFF, dword 16	; przestawiamy sie na nowe miejsce w buforku	trzymamy tak : RGB, puste, RGB, puste itp
+
+			; modujemy bufor
+			mov	eax, BUFFEND
+			sub	eax, BUFF
+			;add	eax, dword 4		
+			sub 	eax, BOFF
+			mov	edx, BOFF
+			cmp	eax, 0
+			cmovle	edx, ZERO
+			mov	BOFF, edx
+
+			
+			call	div_set
+
+
+			mov	eax, MASKSTARTUP
+			mov	edx, eax		; na poczatek nienaruszona maska
+			add	eax, dword 0x3
+			cmp	eax, RROWB
+			cmovg	eax, edx
+			mov	MASKSTARTUP, eax
+
+			; increment XGLOB  ! W PIXELACH !
+			mov	eax, XGLOB
+			add	eax, 3
+			mov	XGLOB, eax
+
+
+	loop	makeRow
+
+	; dorzucamy JUNKI
+	;mov	ecx, ALIGNJUNK
+	;mov	edi, XEDI
+	;mov	eax, dword 0x0
+	;rep	stosb
+
+
+	; przeliczamy LROWB i RROWB
+	
+	mov	eax, LROWB
+	add	eax, ROW
+	mov	LROWB, eax
+
+	mov	eax, RROWB
+	add	eax, ROW
+	mov	RROWB, eax
+
+
+	pop 	ecx
+	sub	ecx, dword 0x1
+jnz rowsLoop
 
 	jmp	endlabel
 
