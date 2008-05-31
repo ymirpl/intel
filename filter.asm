@@ -256,7 +256,9 @@ hyphen:
 	mov	eax, IN
 	mov	LROWB, eax
 	add	eax, WIDTH
-	sub	eax, 4
+	add	eax, WIDTH
+	add	eax, WIDTH
+	sub	eax, 3
 	mov	RROWB, eax	; jak bedzie wiecej, to wyjechal
 
 	; init XGLOB
@@ -270,6 +272,7 @@ hyphen:
 	mov	ecx, HEIGHT ; po calym obrazki
 	; debug
 	shr 	ecx, 1	
+	
 
 rowsLoop:
 	push ecx
@@ -384,20 +387,27 @@ rowsLoop:
 	loop	makeRow
 
 	; dorzucamy JUNKI
-	;mov	ecx, ALIGNJUNK
-	;mov	edi, XEDI
-	;mov	eax, dword 0x0
-	;rep	stosb
+	mov	ecx, ALIGNJUNK
+	mov	edi, XEDI
+	mov	eax, dword 0x0
+	rep	stosb
+	mov	eax, XEDI
+	add	eax, ALIGNJUNK
+	mov	XEDI, eax
 
 
 	; przeliczamy LROWB i RROWB
 	
 	mov	eax, LROWB
 	add	eax, ROW
+	add	eax, ROW
+	add	eax, ROW
 	mov	LROWB, eax
 
 	mov	eax, RROWB
-	add	eax, ROW
+	add	eax, WIDTH
+	add	eax, WIDTH
+	add	eax, WIDTH
 	mov	RROWB, eax
 
 
