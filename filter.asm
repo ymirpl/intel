@@ -257,6 +257,10 @@ hyphen:
 	mov	LROWB, eax
 	add	eax, WIDTH
 	add	eax, WIDTH
+	add	eax, WIDTH	
+
+	add	eax, WIDTH
+	add	eax, WIDTH
 	add	eax, WIDTH
 	sub	eax, 3
 	mov	RROWB, eax	; jak bedzie wiecej, to wyjechal
@@ -271,7 +275,8 @@ hyphen:
 
 	mov	ecx, HEIGHT ; po calym obrazki
 	; debug
-	shr 	ecx, 1	
+	;shr 	ecx, 1	
+	sub	ecx, H
 	
 
 rowsLoop:
@@ -374,8 +379,11 @@ rowsLoop:
 			mov	eax, MASKSTARTUP
 			mov	edx, eax		; na poczatek nienaruszona maska
 			add	eax, dword 0x3
+			push dword RROWB
+			add dword RROWB, dword 1232319
 			cmp	eax, RROWB
 			cmovg	eax, edx
+			pop dword RROWB
 			mov	MASKSTARTUP, eax
 
 			; increment XGLOB  ! W PIXELACH !
@@ -400,14 +408,13 @@ rowsLoop:
 	
 	mov	eax, LROWB
 	add	eax, ROW
-	add	eax, ROW
-	add	eax, ROW
 	mov	LROWB, eax
 
-	mov	eax, RROWB
+;	mov	eax, RROWB
 	add	eax, WIDTH
 	add	eax, WIDTH
 	add	eax, WIDTH
+	sub	eax, 3;
 	mov	RROWB, eax
 
 

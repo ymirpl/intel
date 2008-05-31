@@ -93,12 +93,12 @@ int main(void) {
 
 	x = 0;
 	int ret;
-	i = 1;
+	i = 10;
 
 
 	//for (i = 1; i < 10; i += 2) {
 		for (z = 0; z < ((-(i-10))^2)+1; ++z) {
-			ret = filter(input1, head[0].width, head[0].height, output1[x], i, i);
+		//	ret = filter(input1, head[0].width, head[0].height, output1[x], i, i);
 			printf("AJUNK = %d \n", ret);
 			ret = filter(input2, head[1].width, head[1].height, output2[x], i, i);
 			printf("AJUNK = %d \n", ret);
