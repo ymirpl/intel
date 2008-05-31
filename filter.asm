@@ -13,7 +13,7 @@
 
 %define LROWB			[ebp-56] ; lewy brzeg wiersza
 %define RROWB			[ebp-60] ; prawy brzeg wiersza
-%define ULIMIT			[ebp-64] ; gorny brzeg obrazka
+%define XEDI			[ebp-64] ; gorny brzeg obrazka
 %define DLIMIT			[ebp-68] ; dolny brzeg obrazka
 
 
@@ -29,7 +29,7 @@
 ;%define UVB			[ebp-81]
 ;%define UVG			[ebp-82]
 
-%define Y			[ebp-84] ; dolny
+%define XGLOB			[ebp-84] ; dolny
 ;%define DVG			[ebp-85]
 ;%define DVB			[ebp-86]
 
@@ -109,6 +109,53 @@ section .text
 		pop ecx	
 	ret
 
+
+
+	div_set:
+		mov	esi, BUFF
+		xor	eax, eax
+		xor	edx, edx
+		xor	ebx, ebx
+
+		mov	ecx, WINDOWWIDTH
+		loopSumR:
+			add	ebx, [esi]	; red
+			add	edx, [esi+4]	; gree
+			add	eax, [esi+8]	; blue
+			add	esi, dword 0x10
+		loop loopSumR	
+
+		;; jest posumowane dzielic budziem
+
+		push	edx
+
+		mov	ecx, HYPHEN
+		cdq
+		idiv 	ecx	
+
+		mov	edi, XEDI 
+		mov	esi, XGLOB
+		lea	edi, [edi+02*esi] ; stoimy dobrze
+		add	edi, esi
+
+		mov	[edi], eax
+
+		pop	edx
+		mov	eax, edx
+		cdq
+		idiv	ecx
+		mov	[edi+1], eax
+
+		mov	eax, ebx
+		cdq
+		idiv	ecx
+		mov	[edi+2], eax
+
+		add	edi, dword 3	; inkrementujemy wskaznik na wynik
+		mov	XEDI, edi
+		
+	ret	
+
 ;
 ; void process (unsigned char* dealigned_src, int width, int height, unsigned char* dst, int w, int h, unsigned char* brightness_map);;		
 ;		Copies the image to the new memory block, omitting BMP "align to 4 bytes in row" bytes.
@@ -183,11 +230,6 @@ hyphen:
 	sub 	eax, 4
 	mov	BUFFEND, eax	; buffend pokazuje na ostatni
 
-	; init IMGSIZE
-	mov	eax, [ebp+12]	; width
-	mov	edx, [ebp+16]	; height 
-	mul	edx		; wynik  w eax
-	mov	IMGSIZE, eax
 
 	; init ROW
 	mov 	eax, WIDTH
@@ -195,11 +237,36 @@ hyphen:
 	mul 	edx
 	add 	eax, ALIGNJUNK
 	mov 	ROW, eax
+	
+	; init IMGSIZE <-- to jest razem z ALIGNJUNK!
+	mov	eax, ROW	; width
+	mov	edx, [ebp+16]	; height 
+	mul	edx		; wynik  w eax
+	mov	IMGSIZE, eax
+
+	; init DLIMIT
+	mov	eax, IN
+	add	eax, IMGSIZE
+	sub	eax, 4
+	mov	DLIMIT, eax	; teraz jak bedzie wiecej, to znaczy, ze wyjechal
+
+	; init LROWB i RROWB
+	mov	eax, IN
+	mov	LROWB, eax
+	add	eax, WIDTH
+	sub	eax, 4
+	mov	RROWB, eax	; jak bedzie wiecej, to wyjechal
+
+	; init XGLOB
+	mov	XGLOB, dword 0x0
+
+	; init XEDI
+	mov	eax, OUT
+	mov	XEDI, eax
 
 
-	; init src and dst
-	mov	esi, [ebp+8]	; wejsciowy obrazek 
-	mov	edi, [ebp+20]	; wyjsciowy obrazek
+	 
+
 
 	; bedziemy filtrowac
 
@@ -208,7 +275,8 @@ hyphen:
 	; esi na 0x696
 	jmp debug
 debug:
-	mov 	esi, IN
+	
+	mov	esi, LROWB	; wejsciowy obrazek 
 	mov	eax, ROW
 	mov	edx, H
 	mul 	edx ; edx = row * h
@@ -245,28 +313,9 @@ debug:
 
 	; mamy z gory buforek wypelniony, czas najwyzszy cos podzielic i przepisac
 
-	mov	esi, BUFF
-	xor	eax, eax
-	xor	edx, edx
-	xor	ebx, ebx
 
-	mov	ecx, WINDOWWIDTH
-	loopSumR:
-		add	eax, [esi]
-		add	edx, [esi+4]
-		add	ebx, [esi+8]
-		add	esi, dword 0x10
-	loop loopSumR	
+	call 	div_set	
 
-	;; jest posumowane dzielic budziem
-
-	shl	eax, 16
-	;div	dword HYPHEN
-	mov	eax, dword 0x19
-	mov	edx, HYPHEN
-        div 	dl	
-	movzx	eax, al
-	
 	jmp	endlabel
 
 
