@@ -93,7 +93,7 @@ int main(void) {
 
 	x = 0;
 	int ret;
-	i = 10;
+	i = 80;
 
 
 	//for (i = 1; i < 10; i += 2) {
