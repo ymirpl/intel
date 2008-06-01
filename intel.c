@@ -97,7 +97,7 @@ int main(void) {
 
 
 	//for (i = 1; i < 10; i += 2) {
-		for (z = 0; z < ((-(i-10))^2)+1; ++z) {
+		//for (z = 0; z < ((-(i-10))^2)+1; ++z) {
 		//	ret = filter(input1, head[0].width, head[0].height, output1[x], i, i);
 			printf("AJUNK = %d \n", ret);
 			ret = filter(input2, head[1].width, head[1].height, output2[x], i, i);
@@ -108,7 +108,7 @@ int main(void) {
 			ret = filter(input4, head[3].width, head[3].height, output4[x], i, i);
 			printf("AJUNK = %d \n", ret);
 			filter(input5, head[4].width, head[4].height, output5[x], i, i);
-		}
+		//}
 		//++x;
 	//}
 	

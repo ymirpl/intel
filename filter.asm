@@ -276,7 +276,7 @@ hyphen:
 	mov	ecx, HEIGHT ; po calym obrazki
 	; debug
 	;shr 	ecx, 1	
-	sub	ecx, H
+	;sub	ecx, H
 	
 
 rowsLoop:
