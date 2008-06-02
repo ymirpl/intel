@@ -106,7 +106,9 @@ section .text
 
 			cmp	esi, IN
 			cmovl	esi, ebx
-		loop loopYgora	
+		;loop loopYgora	
+		sub	ecx, 1
+		jnz	loopYgora
 		
 		pop ecx	
 	ret
@@ -276,7 +278,7 @@ hyphen:
 	mov	ecx, HEIGHT ; po calym obrazki
 	; debug
 	;shr 	ecx, 1	
-	;sub	ecx, H
+	sub	ecx, H
 	
 
 rowsLoop:
@@ -320,7 +322,9 @@ rowsLoop:
 			cmp	edi, 0
 			cmovl	edi, ZERO
 			mov	X, edi ; aktualizujemy X
-		loop Xloop	
+		;loop Xloop	
+		sub	ecx, 1
+		jnz Xloop
 
 		; mamy z gory buforek wypelniony, czas najwyzszy cos podzielic i przepisac
 
@@ -380,7 +384,7 @@ rowsLoop:
 			mov	edx, eax		; na poczatek nienaruszona maska
 			add	eax, dword 0x3
 			push dword RROWB
-			add dword RROWB, dword 1232319
+			add dword RROWB, dword 900000 
 			cmp	eax, RROWB
 			cmovg	eax, edx
 			pop dword RROWB
@@ -392,7 +396,9 @@ rowsLoop:
 			mov	XGLOB, eax
 
 
-	loop	makeRow
+	;loop	makeRow
+	sub	ecx, 1
+	jnz makeRow
 
 	; dorzucamy JUNKI
 	mov	ecx, ALIGNJUNK
